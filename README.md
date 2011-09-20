@@ -1,7 +1,7 @@
 Zart.js
 =======
 
-** Deprecated repository: Zart has been landed into [VIE proper](https://github.com/bergie/VIE). Get it from there instead. This repository will be removed soon. **
+**Deprecated repository: Zart has been landed into [VIE proper](https://github.com/bergie/VIE). Get it from there instead. This repository will be removed soon.**
 
 Zart is a new JavaScript library for managing information on a web page. It is based on existing VIE and VIE^2 libraries.
 
