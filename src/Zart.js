@@ -41,116 +41,138 @@ if (!jQuery) {
 }
 
 var Zart;
-Zart = function(config){
+Zart = function (config) {
     this.config = (config) ? config : {};
     this.services = {};
-    this.entities = new this.Collection();
-
-    this.Entity.prototype.entities = this.entities;
+    
+    this.entities = new this.EntityCollection();
     this.entities.zart = this;
-    this.Entity.prototype.entityCollection = this.Collection;
+
     this.Entity.prototype.zart = this;
 
     this.defaultProxyUrl = (this.config.defaultProxyUrl) ? this.config.defaultProxyUrl : "../utils/proxy/proxy.php";
-    this.types = new this.Types({
-        zart: this
-    });
-    this.namespaces = new this.Namespaces({
-        "default": (this.config.defaultNamespace) ? this.config.defaultNamespace : "http://zart.js/"
-    });
+    
+    this.Namespaces.prototype.zart = this;
+    this.namespaces = new this.Namespaces(
+        (this.config.defaultNamespace) ? 
+            this.config.defaultNamespace : 
+            "http://ontology.zart.js/"
+    );
+    
+    this.Type.prototype.zart = this;
+    this.Types.prototype.zart = this;
+    this.Attribute.prototype.zart = this;
+    this.Attributes.prototype.zart = this;
+    this.types = new this.Types();
+    
     this.types.add("Thing");
 };
 
-Zart.prototype.use = function(service, name) {
-  if (!name) {
-    name = service.name;
-  }
-  service.zart = this;
-  service.name = name;
-  if (service.init) {
-      service.init();
-  }
-  this.services[name] = service;
+Zart.prototype = {
+
+    use: function(service, name){
+        if (!name) {
+            name = service.name;
+        }
+        service.zart = this;
+        service.name = name;
+        if (service.init) {
+            service.init();
+        }
+        this.services[name] = service;
+    },
+    
+    service: function(name){
+        if (!this.services[name]) {
+            throw "Undefined service " + name;
+        }
+        return this.services[name];
+    },
+    
+    getServicesArray: function(){
+        var res = [];
+        _(this.services).each(function(service, i){
+            res.push(service);
+        });
+        return res;
+    },
+
+    // Declaring the ..able classes
+    Able : Able,
+    
+    // Loadable
+    load: function(options){
+        if (!options) {
+            options = {};
+        }
+        options.zart = this;
+        return new this.Loadable(options);
+    },
+    
+    Loadable : function (options) {
+        this.init(options,"load");
+    },
+    
+    // Savable
+    save: function(options){
+        if (!options) {
+            options = {};
+        }
+        options.zart = this;
+        return new this.Savable(options);
+    },
+    
+    Savable : function(options){
+        this.init(options, "save");
+    },
+    
+    // Removable
+    remove: function(options){
+        if (!options) {
+            options = {};
+        }
+        options.zart = this;
+        return new this.Removable(options);
+    },
+    
+    Removable : function(options){
+        this.init(options, "remove");
+    },
+    
+    // Analyzable
+    analyze: function(options){
+        if (!options) {
+            options = {};
+        }
+        options.zart = this;
+        return new this.Analyzable(options);
+    },
+    
+    Analyzable : function (options) {
+        this.init(options, "analyze");
+    },
+    
+    // Findable
+    find: function(options){
+        if (!options) {
+            options = {};
+        }
+        options.zart = this;
+        return new this.Findable(options);
+    },
+    
+    Findable : function (options) {
+        this.init(options, "find");
+    }
+    
 };
-
-Zart.prototype.service = function(name) {
-  if (!this.services[name]) {
-    throw "Undefined service " + name;
-  }
-  return this.services[name];
-};
-
-Zart.prototype.getServicesArray = function() {
-  var res = [];
-  _(this.services).each(function(service, i){res.push(service);});
-  return res;
-};
-
-Zart.prototype.Able = Able;
-
-// Declaring the ..able classes
-// Loadable
-Zart.prototype.load = function(options) {
-  if (!options) { options = {}; }
-  options.zart = this;
-  return new this.Loadable(options);
-};
-
-Zart.prototype.Loadable = function (options) {
-    this.init(options,"load");
-};
-
+    
 Zart.prototype.Loadable.prototype = new Zart.prototype.Able();
-
-// Savable
-Zart.prototype.save = function(options) {
-  if (!options) { options = {}; }
-  options.zart = this;
-  return new this.Savable(options);
-};
-
-Zart.prototype.Savable = function(options){
-    this.init(options, "save");
-};
-
+        
 Zart.prototype.Savable.prototype = new Zart.prototype.Able();
-
-// Removable
-Zart.prototype.remove = function(options) {
-  if (!options) { options = {}; }
-  options.zart = this;
-  return new this.Removable(options);
-};
-
-Zart.prototype.Removable = function(options){
-    this.init(options, "remove");
-};
-
+        
 Zart.prototype.Removable.prototype = new Zart.prototype.Able();
-
-// Analyzable
-Zart.prototype.analyze = function(options) {
-  if (!options) { options = {}; }
-  options.zart = this;
-  return new this.Analyzable(options);
-};
-
-Zart.prototype.Analyzable = function (options) {
-    this.init(options, "analyze");
-};
-
+    
 Zart.prototype.Analyzable.prototype = new Zart.prototype.Able();
 
-// Findable
-Zart.prototype.find = function(options) {
-  if (!options) { options = {}; }
-  options.zart = this;
-  return new this.Findable(options);
-};
-
-Zart.prototype.Findable = function (options) {
-    this.init(options, "find");
-};
-
-Zart.prototype.Findable.prototype = new Zart.prototype.Able();
-
+Zart.prototype.Findable.prototype = new Zart.prototype.Able();  

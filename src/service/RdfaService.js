@@ -4,7 +4,7 @@ Zart.prototype.RdfaService = function(options) {
     }
     this.zart = null;
     this.name = 'rdfa';
-    this.subjectSelector = options.subjectSelector ? options.subjectSelector : "[about],[typeof],[src],html";
+    this.subjectSelector = options.subjectSelector ? options.subjectSelector : "[about],[typeof],[src],[href],html";
     this.predicateSelector = options.predicateSelector ? options.predicateSelector : "[property],[rel]";
     this.views = [];
 };
@@ -55,14 +55,18 @@ Zart.prototype.RdfaService.prototype = {
     },
     
     _readEntity : function(element) {
-        var subject = this.getElementSubject(element);
+        var subject = this._getElementSubject(element);
+        var type = this._getElementType(element);
     
         var entity = this._readEntityPredicates(subject, element, false);
-        if (jQuery.isEmptyObject(entity)) {
-            return null;
-        }
+        //if (jQuery.isEmptyObject(entity)) {
+        //    return null;
+        //}
     
         entity['@subject'] = subject;
+        if (type) {
+            entity['@type'] = type;
+        }
     
         var entityInstance = new this.zart.Entity(entity);
         entityInstance = this.zart.entities.addOrUpdate(entityInstance);
@@ -72,7 +76,7 @@ Zart.prototype.RdfaService.prototype = {
     
     _writeEntity : function(entity, element) {
         var service = this;
-        this._findPredicateElements(this.getElementSubject(element), element, true).each(function() {
+        this._findPredicateElements(this._getElementSubject(element), element, true).each(function() {
             var predicateElement = jQuery(this);
             var predicate = service.getElementPredicate(predicateElement);
             if (!entity.has(predicate)) {
@@ -119,7 +123,7 @@ Zart.prototype.RdfaService.prototype = {
         // Find collection elements and create collection views for them
         _.each(entity.attributes, function(value, predicate) {
             var attributeValue = entity.get(predicate);
-            if (attributeValue instanceof service.zart.Collection) {
+            if (attributeValue instanceof service.zart.EntityCollection) {
                 jQuery.each(service.getElementByPredicate(predicate, element), function() {
                     service._registerCollectionView(attributeValue, jQuery(this));
                 });
@@ -148,7 +152,22 @@ Zart.prototype.RdfaService.prototype = {
         return viewInstance;
     },
     
-    getElementSubject : function(element) {
+    _getElementType : function (element) {
+        var type;
+        if (jQuery(element).attr('typeof')) {
+            type = jQuery(element).attr('typeof');
+            if (type.indexOf("://") !== -1) {
+                return "<" + type + ">";
+            }
+            else {
+                return type;
+            }
+        }
+            
+        return null;
+    },
+    
+    _getElementSubject : function(element) {
         if (typeof document !== 'undefined') {
             if (element === document) {
                 return document.baseURI;
@@ -162,10 +181,6 @@ Zart.prototype.RdfaService.prototype = {
             }
             if (jQuery(this).attr('src')) {
                 subject = jQuery(this).attr('src');
-                return true;
-            }
-            if (jQuery(this).attr('typeof')) {
-                subject = this;
                 return true;
             }
     
@@ -186,7 +201,7 @@ Zart.prototype.RdfaService.prototype = {
             return subject;
         }
     
-        return "<" + subject + ">"
+        return "<" + subject + ">";
     },
     
     setElementSubject : function(subject, element) {
@@ -208,7 +223,7 @@ Zart.prototype.RdfaService.prototype = {
     getElementBySubject : function(subject, element) {
         var service = this;
         return jQuery(element).find(this.subjectSelector).add(jQuery(element).filter(this.subjectSelector)).filter(function() {
-            if (service.getElementSubject(jQuery(this)) !== subject) {
+            if (service._getElementSubject(jQuery(this)) !== subject) {
                 return false;
             }
      
@@ -218,13 +233,13 @@ Zart.prototype.RdfaService.prototype = {
     
     getElementByPredicate : function(predicate, element) {
         var service = this;
-        var subject = this.getElementSubject(element);
+        var subject = this._getElementSubject(element);
         return jQuery(element).find(this.predicateSelector).add(jQuery(element).filter(this.predicateSelector)).filter(function() {
             if (service.getElementPredicate(jQuery(this)) !== predicate) {
                 return false;
             }
     
-            if (service.getElementSubject(jQuery(this)) !== subject) {
+            if (service._getElementSubject(jQuery(this)) !== subject) {
                 return false;
             }
      
@@ -250,7 +265,7 @@ Zart.prototype.RdfaService.prototype = {
     
         if (jQuery(element).get(0).tagName !== 'HTML') {
             jQuery(element).parent('[rev]').each(function() {
-                entityPredicates[jQuery(this).attr('rev')] = service.getElementSubject(this); 
+                entityPredicates[jQuery(this).attr('rev')] = service._getElementSubject(this); 
             });
         }
     
@@ -260,7 +275,7 @@ Zart.prototype.RdfaService.prototype = {
     _findPredicateElements : function(subject, element, allowNestedPredicates) {
         var service = this;
         return jQuery(element).find(this.predicateSelector).add(jQuery(element).filter(this.predicateSelector)).filter(function() {
-            if (service.getElementSubject(this) !== subject) {
+            if (service._getElementSubject(this) !== subject) {
                 return false;
             }
             if (!allowNestedPredicates) {
@@ -304,7 +319,7 @@ Zart.prototype.RdfaService.prototype = {
             var value = [];
             var service = this;
             jQuery(element).children(this.subjectSelector).each(function() {
-                value.push(service.getElementSubject(this));
+                value.push(service._getElementSubject(this));
             });
             return value;
         }
@@ -315,6 +330,10 @@ Zart.prototype.RdfaService.prototype = {
     },
     
     writeElementValue : function(predicate, element, value) {
+        
+        //TODO: this is a hack, please fix!
+        if (value instanceof Array && value.length > 0) value = value[0];
+        
         // The `content` attribute can be used for providing machine-readable
         // values for elements where the HTML presentation differs from the
         // actual value.

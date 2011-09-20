@@ -51,7 +51,7 @@
         	<fileset dir="${SRC_DIR}" includes="Zart.js"/>
             <fileset dir="${SRC_DIR}" includes="Util.js"/>
             <fileset dir="${SRC_DIR}" includes="Entity.js"/>
-            <fileset dir="${SRC_DIR}" includes="Collection.js"/>
+            <fileset dir="${SRC_DIR}" includes="EntityCollection.js"/>
             <fileset dir="${SRC_DIR}" includes="Type.js"/>
             <fileset dir="${SRC_DIR}" includes="Attribute.js"/>
             <fileset dir="${SRC_DIR}" includes="Namespaces.js"/>

@@ -14,6 +14,7 @@ Zart.prototype.loadSchemaOrg = function () {
     this.types.remove("Thing");
     
     this.namespaces.add("xsd", "http://www.w3.org/2001/XMLSchema#");
+    this.namespaces.base("http://www.schema.org/");
     
     var datatypeMapping = {
         'DataType': 'xsd:anyType',
@@ -42,12 +43,12 @@ Zart.prototype.loadSchemaOrg = function () {
             var ancestors = SchemaOrg["datatypes"][dt].supertypes;
             dataTypeHelper.call(this, ancestors, dt);
         }
-    }
+    };
     
     var typeProps = function (id) {
         var props = [];
         var specProps = SchemaOrg["types"][id]["specific_properties"];
-        for (var p in specProps) {
+        for (var p = 0; p < specProps.length; p++) {
             var pId = specProps[p];
             var range = SchemaOrg["properties"][pId]["ranges"];
             props.push({

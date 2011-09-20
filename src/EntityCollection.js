@@ -1,4 +1,4 @@
-Zart.prototype.Collection = Backbone.Collection.extend({
+Zart.prototype.EntityCollection = Backbone.Collection.extend({
     model: Zart.prototype.Entity,
 
     addOrUpdate: function(model) {

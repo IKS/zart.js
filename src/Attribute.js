@@ -15,7 +15,6 @@ Zart.prototype.Attribute = function (id, range, domain, options) {
     if (!options || !options.zart || !(options.zart instanceof Zart)) {
         throw "Zart.Attribute needs an instance of Zart given.";
     }
-    this.zart = options.zart;
     
     this._domain = domain;
     this.range = (jQuery.isArray(range))? range : [ range ];
@@ -27,7 +26,7 @@ Zart.prototype.Attribute = function (id, range, domain, options) {
         if (this.zart.types.get(range)) {
             range = this.zart.types.get(range);
         }
-        for (var r in this.range) {
+        for (var r = 0; r < this.range.length; r++) {
             var x = this.zart.types.get(this.range[r]);
             if (x === undefined && typeof range === "string") {
                 if (range === this.range[r]) {
@@ -50,8 +49,6 @@ Zart.prototype.Attribute = function (id, range, domain, options) {
 };
 
 Zart.prototype.Attributes = function (domain, attrs, options) {
-    
-    this.zart = options.zart;
     
     this.domain = domain;
     
@@ -112,9 +109,9 @@ Zart.prototype.Attributes = function (domain, attrs, options) {
         var add = {};
         var merge = {};
         
-        for (var a in inherited) {
+        for (var a = 0; a < inherited.length; a++) {
             var attrs = inherited[a].list();
-            for (var x in attrs) {
+            for (var x = 0; x < attrs.length; x++) {
                 var id = attrs[x].id;
                 if (!(id in attributes)) {
                     if (!(id in add) && !(id in merge)) {
@@ -142,11 +139,11 @@ Zart.prototype.Attributes = function (domain, attrs, options) {
         for (var id in merge) {
             var merged = merge[id];
             var ranges = [];
-            for (var r in merged) {
+            for (var r = 0; r < merged.length; r++) {
                 var p = this.zart.types.get(merged[r]);
                 var isAncestorOf = false;
                 if (p) {
-                    for (var x in merged) {
+                    for (var x = 0; x < merged.length; x++) {
                         if (x === r) {
                             continue;
                         }
@@ -185,7 +182,8 @@ Zart.prototype.Attributes = function (domain, attrs, options) {
     if (!jQuery.isArray(attrs)) {
         attrs = [ attrs ];
     }
-    for (var a in attrs) {
+    
+    for (var a = 0; a < attrs.length; a++) {
         this.add(attrs[a].id, attrs[a].range);
     }
 };

@@ -1,7 +1,7 @@
 
-Able = function(){
-}
-    // takes a list of services or just one
+Able = function(){}
+
+// takes a list of services or just one
 Able.prototype = {
     using: function(services) {
         var service = this;
@@ -50,4 +50,4 @@ Able.prototype = {
         });
         return this;
     }
-}
+};

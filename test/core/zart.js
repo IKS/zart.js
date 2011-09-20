@@ -27,7 +27,7 @@ test("zart.js API", function () {
 test("zart.js Entities API", function () {
     var z = new Zart();
     z.namespaces.add('dc', 'http://purl.org/dc/elements/1.1/');
-    ok(z.entities instanceof z.Collection);
+    ok(z.entities instanceof z.EntityCollection);
     equal(z.entities.length, 0);
     
     z.entities.add({
@@ -44,7 +44,6 @@ test("zart.js Entities API", function () {
 test("zart.js Entities API - addOrUpdate", function () {
     var z = new Zart();
     z.namespaces.add('dc', 'http://purl.org/dc/elements/1.1/');
-    ok(z.entities instanceof z.Collection);
     equal(z.entities.length, 0);
 
     z.entities.add({
@@ -64,7 +63,6 @@ test("zart.js Entities API - addOrUpdate", function () {
     var z = new Zart();
     z.namespaces.add('example', 'http://example.net/foo/');
     z.namespaces.add("foaf", "http://xmlns.com/foaf/0.1/");
-    ok(z.entities instanceof z.Collection);
     equal(z.entities.length, 0);
     
     var person = z.types.add("foaf:Person").inherit(z.types.get('Thing'));
@@ -88,7 +86,7 @@ test("zart.js Entity API - setOrAdd", function () {
     });
     var clapton = z.entities.get('http://example.org/EricClapton');
     clapton.setOrAdd('plays', 'guitar');
-    equals(typeof z.entities.get('http://example.org/EricClapton').get('plays'), "string", "Single values are stored as they are");
+    ok(z.entities.get('http://example.org/EricClapton').get('plays') instanceof Array, "Single values are stored as Arrays");
 
     clapton.setOrAdd('plays', 'vocals');
     ok(z.entities.get('http://example.org/EricClapton').get('plays') instanceof Array, "Multiple values are stored as Arrays");
@@ -97,7 +95,7 @@ test("zart.js Entity API - setOrAdd", function () {
     ok(!clapton.get('plays'), "Property unset");
 
     clapton.setOrAdd({'plays': 'guitar'});
-    equals(typeof clapton.get('plays'), "string", "Single values are stored as they are");
+    ok(clapton.get('plays') instanceof Array, "Single values are stored as Arrays");
 
     clapton.setOrAdd({'plays': 'vocals'});
     ok(clapton.get('plays') instanceof Array, "Multiple values are stored as Arrays");

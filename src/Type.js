@@ -2,28 +2,24 @@
 // Author: <a href="mailto:sebastian.germesin@dfki.de">Sebastian Germesin</a>
 //
 
-Zart.prototype.Type = function (id, attrs, options) {
+Zart.prototype.Type = function (id, attrs) {
     if (id === undefined || typeof id !== 'string') {
         throw "The type constructor needs an 'id' of type string! E.g., 'Person'";
     }
-    if (!options || !options.zart || !(options.zart instanceof Zart)) {
-        throw "Zart.Type needs an instance of Zart given.";
-    }
-    this.zart = options.zart;
-    
+
     if (this.zart.types.get(id)) {
         return this.zart.types.get(id);
     }
-   
+    
     this.id = this.zart.namespaces.isUri(id) ? id : this.zart.namespaces.uri(id);
-        
-    this.supertypes = new this.zart.Types(options);
-    this.subtypes = new this.zart.Types(options);
+
+    this.supertypes = new this.zart.Types();
+    this.subtypes = new this.zart.Types();
     
     if (attrs === undefined) {
         attrs = [];
     }
-    this.attributes = new this.zart.Attributes(this, attrs, options);
+    this.attributes = new this.zart.Attributes(this, attrs);
     
     this.isof = function (type) {
         type = this.zart.types.get(type);
@@ -42,7 +38,7 @@ Zart.prototype.Type = function (id, attrs, options) {
             }
             var subsumedByChildren = false;
             var subtypes = this.subtypes.list();
-            for (var c in subtypes) {
+            for (var c = 0; c < subtypes.length; c++) {
                 var childObj = subtypes[c];
                 if (childObj) {
                      if (childObj.id === type.id || childObj.subsumes(type)) {
@@ -72,7 +68,7 @@ Zart.prototype.Type = function (id, attrs, options) {
                 throw e;
             }
         } else if (jQuery.isArray(supertype)) {
-            for (var i in supertype) {
+            for (var i = 0; i < supertype.length; i++) {
                 this.inherit(supertype[i]);
             }
         } else {
@@ -83,8 +79,9 @@ Zart.prototype.Type = function (id, attrs, options) {
         
     this.hierarchy = function () {
         var obj = {id : this.id, subtypes: []};
-        for (var c in this.subtypes.list()) {
-            var childObj = this.zart.types.get(this.subtypes.list()[c]);
+        var list = this.subtypes.list();
+        for (var c = 0; c < list.length; c++) {
+            var childObj = this.zart.types.get(list[c]);
             obj.subtypes.push(childObj.hierarchy());
         }
         return obj;
@@ -97,12 +94,11 @@ Zart.prototype.Type = function (id, attrs, options) {
     this.toString = function () {
         return this.id;
     };
+    
 };
 
-Zart.prototype.Types = function (options) {
-    
-    this.zart = options.zart;
-    
+Zart.prototype.Types = function () {
+        
     this._types = {};
     
     this.add = function (id, attrs) {
@@ -111,10 +107,7 @@ Zart.prototype.Types = function (options) {
         } 
         else {
             if (typeof id === "string") {
-                var options = {
-                    zart: this.zart
-                };
-                var t = new this.zart.Type(id, attrs, options);
+                var t = new this.zart.Type(id, attrs);
                 this._types[t.id] = t;
                 return t;
             } else if (id instanceof this.zart.Type) {
@@ -130,17 +123,18 @@ Zart.prototype.Types = function (options) {
         if (this.get(id)) {
             this.remove(id);
         }
-        return this.add(id);
+        return this.add(id, attrs);
     };
     
     this.get = function (id) {
+        if (!id) return undefined;
         if (typeof id === 'string') {
             var lid = this.zart.namespaces.isUri(id) ? id : this.zart.namespaces.uri(id);
             return this._types[lid];
         } else if (id instanceof this.zart.Type) {
             return this.get(id.id);
         }
-        throw "Wrong argument in Zart.Types.get()";
+        return undefined;
     };
     
     this.remove = function (id) {
@@ -151,7 +145,7 @@ Zart.prototype.Types = function (options) {
         delete this._types[t.id];
         
         var subtypes = t.subtypes.list();
-        for (var c in subtypes) {
+        for (var c = 0; c < subtypes.length; c++) {
             var childObj = subtypes[c];
             if (childObj.supertypes.list().length === 1) {
                 //recursively remove all children 

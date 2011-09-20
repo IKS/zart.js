@@ -2,10 +2,26 @@
 // Author: <a href="mailto:sebastian.germesin@dfki.de">Sebastian Germesin</a>
 //
 
-Zart.prototype.Namespaces = function (namespaces) {
+Zart.prototype.Namespaces = function (base, namespaces) {
+    
+    if (!base) {
+        throw "Please provide a base namespace!";
+    }
+    
+    this._base = base;
+    this.base = function (ns) {
+        if (!ns) { // getter
+            return this._base;
+        } else if (typeof ns === "string") { // setter
+            this._base = ns;
+        } else {
+            throw "Please provide a valid namespace!";
+        }
+        return this;
+    };
     
     this._namespaces = (namespaces)? namespaces : {};
-    
+        
     this.add = function (k, v) {
         if (typeof k === "object") {
             for (var k1 in k) {
@@ -13,8 +29,11 @@ Zart.prototype.Namespaces = function (namespaces) {
             }
             return this;
         }
+        if (k === "") {
+            this.base(v);
+        }
         //check if we overwrite existing mappings
-        if (this.containsKey(k) && v !== this._namespaces[k]) {
+        else if (this.containsKey(k) && v !== this._namespaces[k]) {
             throw "ERROR: Trying to register namespace prefix mapping (" + k + "," + v + ")!" +
                   "There is already a mapping existing: '(" + k + "," + this.get(k) + ")'!";
         } else {
@@ -88,7 +107,7 @@ Zart.prototype.Namespaces = function (namespaces) {
     };
     
     this.toObj = function () {
-        return jQuery.extend({}, this._namespaces);
+        return jQuery.extend({'' : this._base}, this._namespaces);
     };
     
     this.curie = function(uri, safe){

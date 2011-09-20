@@ -14,12 +14,36 @@ jQuery.fn.compare = function(t) {
     return true;
 };
 
+if (!Array.prototype.remove) {
+    Array.prototype.remove = function () {
+        var args = this.remove.arguments;
+        if (args[0] instanceof Array) {
+            for (var i = 0; i < args[0].length; i++) {
+                this.remove(args[0][i]);
+            }
+        }
+        else {
+            for (var i = 0; i < args.length; i++) {
+                while(true) {
+                    var index = this.indexOf(args[i]);
+		            if (index !== -1) 
+                      this.splice(index, 1);
+                    else 
+                      break;
+                }
+            }
+        }
+        return this;
+    };
+}
+
 Zart.Util = {
     toCurie : function (uri, safe, namespaces) {
         var delim = ":";
         for (var k in namespaces.toObj()) {
             if (uri.indexOf(namespaces.get(k)) === 1) {
                 var pattern = new RegExp("^" + "<" + namespaces.get(k));
+                if (k === '') delim = '';
                 return ((safe)? "[" : "") + 
                         uri.replace(pattern, k + delim).replace(/>$/, '') +
                         ((safe)? "]" : "");
@@ -35,14 +59,14 @@ Zart.Util = {
     toUri : function (curie, namespaces) {
         var delim = ":";
         for (var k in namespaces.toObj()) {
-            if (curie.indexOf(k) === 0 || curie.indexOf(k) === 1) {
+            if (k !== "" && (curie.indexOf(k) === 0 || curie.indexOf(k) === 1)) {
                 var pattern = new RegExp("^" + "\\[{0,1}" + k + delim);
                 return "<" + curie.replace(pattern, namespaces.get(k)).replace(/\]{0,1}$/, '') + ">";
             }
         }
         //default:
-        if (curie.indexOf(delim) === -1 && namespaces.get("default")) {
-            return "<" + namespaces.get("default") + curie + ">";
+        if (curie.indexOf(delim) === -1 && namespaces.base()) {
+            return "<" + namespaces.base() + curie + ">";
         }
         throw "No prefix found for uri '" + curie + "'!";
     },
@@ -65,7 +89,7 @@ Zart.Util = {
             }
         }
         return results;
-    },
+    }
 
 };
 
