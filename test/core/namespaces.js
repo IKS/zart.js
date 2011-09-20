@@ -6,9 +6,11 @@ test("Zart namespace", function () {
    ok(z);
    ok(z.namespaces);
    
+   ok(z.namespaces.base);
+   equal(typeof z.namespaces.base, "function");
    ok(z.namespaces.add);
    equal(typeof z.namespaces.add, "function");
-  ok(z.namespaces.addOrReplace);
+   ok(z.namespaces.addOrReplace);
    equal(typeof z.namespaces.addOrReplace, "function");
    ok(z.namespaces.get);
    equal(typeof z.namespaces.get, "function");
@@ -31,7 +33,25 @@ test("Zart namespace", function () {
    ok(z.namespaces.isUri);
    equal(typeof z.namespaces.isUri, "function");
    
-   
+});
+
+
+test ("Getter/setter for base namespace", function () {
+    var z = new Zart();
+    
+    equal(typeof z.namespaces.base(), "string");
+    
+    z.namespaces.base("http://this.is-a-default.namespace/");
+    
+    equal(z.namespaces.base(), "http://this.is-a-default.namespace/");
+    
+    raises(function () {
+        z.namespaces.base({"test" : "http://this.should.fail/"});
+    });
+    
+    z.namespaces.add("", "http://this.is-another-default.namespace/");
+    
+    equal(z.namespaces.base(), "http://this.is-another-default.namespace/");
 });
 
 test ("Manually adding namespaces", function () {

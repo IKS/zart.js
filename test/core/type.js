@@ -8,7 +8,7 @@ test("zart.js - Type API", function() {
   
     ok(z.types);
     ok(typeof z.types === 'object');
-    
+
     ok(z.types.zart);
     ok(z.types.zart instanceof Zart);
     
@@ -88,10 +88,10 @@ test("zart.js - Creation/Extension/Removal of types", function() {
     ok (thingy.hierarchy());
     equal (typeof thingy.hierarchy(), 'object');
     var refHierarchy = {
-        id : '<' + z.namespaces.get("default") + "TestThingy" + '>',
+        id : '<' + z.namespaces.base() + "TestThingy" + '>',
         subtypes: [
             {
-                id : '<' + z.namespaces.get("default") + "TestPersony" + '>',
+                id : '<' + z.namespaces.base() + "TestPersony" + '>',
                 subtypes: []
             }
         ]
@@ -108,7 +108,7 @@ test("zart.js - Creation/Extension/Removal of types", function() {
     var animaly = z.types.add("TestAnimaly").inherit(thingy);
     
     var specialCreaturey = z.types.add("SpecialCreatuery").inherit(persony).inherit(animaly);
-    
+
     equal(z.types.list().length, 5);
     equal(persony.subtypes.list().length, 1);
     equal(animaly.subtypes.list().length, 1);

@@ -8,12 +8,13 @@ test("Test simple RDFa parsing", function() {
 
     stop(1000); // 1 second timeout
     z.load({element: html}).from('rdfa').execute().done(function(entities) {
+        
         ok(entities);
         equal(entities.length, 2);
 
         equal(entities[1].id, '<http://dbpedia.org/resource/Albert_Einstein>');
         equal(entities[1].get('foaf:name'), 'Albert Einstein');
-        equal(entities[0].get('dbp:conventionalLongName'), 'Federal Republic of Germany');
+        equal(entities[0].get('dbp:conventionalLongName')[0], 'Federal Republic of Germany');
 
         equal(z.entities.get('<http://dbpedia.org/resource/Germany>').id, entities[0].id);
 
@@ -32,7 +33,7 @@ test("Test updating RDFa views", function() {
         ok(entities);
         equal(entities.length, 2);
 
-        equal(entities[0].get('dbp:conventionalLongName'), 'Federal Republic of Germany');
+        equal(entities[0].get('dbp:conventionalLongName')[0], 'Federal Republic of Germany');
 
         entities[0].set({'dbp:conventionalLongName': 'Switzerland'});
         equal(entities[0].get('dbp:conventionalLongName'), 'Switzerland');
@@ -68,10 +69,10 @@ test("Test RDFa property content", function() {
     stop(1000); // 1 second timeout
     z.load({element: html}).from('rdfa').execute().done(function(entities) {
         equal(entities.length, 1);
-        equal(entities[0].get('iks:online'), 0);
+        equal(entities[0].get('iks:online')[0], 0);
 
         entities[0].set({'iks:online': 1});
-        equal(entities[0].get('iks:online'), 1);
+        equal(entities[0].get('iks:online')[0], 1);
         equal(jQuery('[property="iks:online"]', html).attr('content'), 1);
         equal(jQuery('[property="iks:online"]', html).text(), '');
 
@@ -99,23 +100,35 @@ test("Test RDFa image entitization", function() {
     z.namespaces.add('mgd', 'http://midgard-project.org/ontology/');
     z.namespaces.add('dcterms', 'http://purl.org/dc/terms/');
     z.use(new z.RdfaService);
+    
+    z.types.add("<http://rdfs.org/sioc/ns#Post>").inherit(z.types.get("Thing"));
+    z.types.add("mgd:Photo").inherit(z.types.get("Thing"));
 
-    var html = jQuery('<div id="myarticle" typeof="http://rdfs.org/sioc/ns#Post" about="http://example.net/blog/news_item"><h1 property="dcterms:title"><span>News item title</span></h1><span rel="mgd:icon"><img typeof="mgd:photo" src="http://example.net/image.jpg" /></span></div>');
+    var html = jQuery('<div id="myarticle" typeof="http://rdfs.org/sioc/ns#Post" about="http://example.net/blog/news_item"><h1 property="dcterms:title"><span>News item title</span></h1><span rel="mgd:icon"><img typeof="mgd:Photo" src="http://example.net/image.jpg" /></span></div>');
 
     stop(1000); // 1 second timeout
     z.load({element: html}).from('rdfa').execute().done(function(entities) {
 
         var icons = z.entities.get('<http://example.net/blog/news_item>').get('mgd:icon');
         // Ensure we have the image correctly read
-        ok(icons instanceof z.Collection, "Icons should be a Collection");
-        equal(icons.at(0).id, '<http://example.net/image.jpg>');
+        ok(icons instanceof Array, "Icons should be an array");
+        equal(icons[0].id, '<http://example.net/image.jpg>');
+        
+        equal(jQuery('img', html).length, 1);
 
-        icons.remove(icons.at(0));
-        //TODO: this fails as there is no View registered for this object
+        z.entities.get('<http://example.net/blog/news_item>').unset("mgd:icon");
+        
+        //TODO: this fails as there is method to remove elements from the DOM
         equal(jQuery('img', html).length, 0);
 
-        icons.add({'@subject': '<http://example.net/otherimage.jpg>'});
+        icons.push('<http://example.net/otherimage.jpg>');
+        z.entities.get('<http://example.net/blog/news_item>').set({
+            "mgd:icon" : icons
+        });
+        
+        //TODO: this fails as there is method to remove elements from the DOM
         equal(jQuery('img', html).length, 1);
+        //TODO: this fails as there is method to remove elements from the DOM
         equal(jQuery('img[src="http://example.net/otherimage.jpg"]', html).length, 1);
 
         start();

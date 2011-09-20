@@ -21,8 +21,7 @@ Zart.prototype.StanbolService = function(options) {
             entityhub: "http://www.iks-project.eu/ontology/rick/model/",
             rdfs: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
             dc  : 'http://purl.org/dc/terms/',
-            foaf: 'http://xmlns.com/foaf/0.1/',
-            schema: 'http://schema.org/'
+            foaf: 'http://xmlns.com/foaf/0.1/'
         }
     };
     this.options = jQuery.extend(defaults, options ? options : {});
@@ -49,22 +48,16 @@ Zart.prototype.StanbolService.prototype = {
                 //ignore for now!
             }
         }
-        this.namespaces = new this.zart.Namespaces(this.options.namespaces);
         
         this.rules = [
             //rule to add backwards-relations to the triples
             //this makes querying for entities a lot easier!
             {'left' : [
-                '?subject a <http://fise.iks-project.eu/ontology/EntityAnnotation>',
+                '?subject a enhancer:EntityAnnotation',
                 '?subject enhancer:entity-type ?type',
-                '?subject enhancer:confidence ?confidence',
                 '?subject enhancer:entity-reference ?entity',
                 '?subject dc:relation ?relation',
-                '?relation a <http://fise.iks-project.eu/ontology/TextAnnotation>',
-                '?relation enhancer:selected-text ?selected-text',
-                '?relation enhancer:selection-context ?selection-context',
-                '?relation enhancer:start ?start',
-                '?relation enhancer:end ?end'
+                '?relation a enhancer:TextAnnotation'
             ],
              'right' : [
                  '?entity a ?type',
@@ -80,11 +73,11 @@ Zart.prototype.StanbolService.prototype = {
                  'right': function(ns){
                      return function(){
                          return jQuery.rdf.triple(this.subject.toString() +
-                         ' a ' + ns["default"] + 'Person>', {
+                         ' a ' + ns.base() + 'Person>', {
                              namespaces: ns
                          });
                      };
-                 }(this.namespaces.toObj())
+                 }(this.zart.namespaces.toObj())
              },
              {
                 'left' : [
@@ -93,11 +86,11 @@ Zart.prototype.StanbolService.prototype = {
                  'right': function(ns){
                      return function(){
                          return jQuery.rdf.triple(this.subject.toString() +
-                         ' a ' + ns["default"] + 'Person>', {
+                         ' a ' + ns.base() + 'Person>', {
                              namespaces: ns
                          });
                      };
-                 }(this.namespaces.toObj())
+                 }(this.zart.namespaces.toObj())
              }
         ];
         
@@ -212,8 +205,8 @@ Zart.prototype.StanbolService.prototype = {
         //execute rules here!
         if (service.rules) {
             var rules = jQuery.rdf.ruleset();
-            for (var prefix in service.namespaces.toObj()) {
-                rules.prefix(prefix, service.namespaces.get(prefix));
+            for (var prefix in service.zart.namespaces.toObj()) {
+                rules.prefix(prefix, service.zart.namespaces.get(prefix));
             }
             for (var i = 0; i < service.rules.length; i++) {
                 rules.add(service.rules[i]['left'], service.rules[i]['right']);
@@ -226,13 +219,13 @@ Zart.prototype.StanbolService.prototype = {
             if (!entities[subject]) {
                 entities[subject] = {
                     '@subject': subject,
-                    '@context': service.namespaces.toObj(),
+                    '@context': service.zart.namespaces.toObj(),
                     '@type': []
                 };
             }
             var propertyUri = this.property.toString();
 
-            var propertyCurie = jQuery.createCurie(propertyUri.substring(1, propertyUri.length - 1), {namespaces: service.namespaces.toObj()});
+            var propertyCurie = jQuery.createCurie(propertyUri.substring(1, propertyUri.length - 1), {namespaces: service.zart.namespaces.toObj()});
             entities[subject][propertyCurie] = entities[subject][propertyCurie] || [];
 
             function getValue(rdfQueryLiteral){
